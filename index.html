@@ -261,8 +261,8 @@ nav {
 }
 .hero-content { position: relative; z-index: 2; }
 .hero-logo {
-  width: 200px;
-  height: 200px;
+  width: 300px;
+  height: 300px;
   border-radius: 50%;
   object-fit: cover;
   margin: 0 auto 28px;
@@ -446,6 +446,11 @@ nav {
   border: 1px solid rgba(0, 207, 255, 0.3);
   border-radius: 4px;
   transition: all 0.3s;
+}
+.btn-disabled {
+  opacity: 0.35;
+  cursor: not-allowed !important;
+  pointer-events: none;
 }
 .btn-secondary:hover {
   border-color: var(--blue);
@@ -995,6 +1000,7 @@ footer {
   .bento-large { grid-column: span 1; }
   .who-grid { grid-template-columns: repeat(2, 1fr); }
   .hero-title { letter-spacing: 2px; font-size: clamp(28px, 9vw, 96px); }
+  .hero-logo { width: 200px; height: 200px; }
   .hero-subtitle { letter-spacing: 4px; }
   /* Hide custom cursor on mobile/touch */
   .cursor-dot, .cursor-ring { display: none; }
@@ -1047,8 +1053,8 @@ footer {
     <p class="hero-tagline">2045. Lunar broadcast. Millions are watching.</p>
     <p class="hero-tagline-secondary">Design your combat robot. Enter the arena. Compete live on the biggest engineering show in the solar system.</p>
     <div class="hero-ctas">
-      <a href="#register" class="btn-primary">Enter Now</a>
-      <a href="#" class="btn-secondary">&#9654; Watch Last Season</a>
+      <a href="#register" class="btn-primary">Coming Soon</a>
+      <span class="btn-secondary btn-disabled">&#9654; Watch Last Season</span>
     </div>
   </div>
 </section>
