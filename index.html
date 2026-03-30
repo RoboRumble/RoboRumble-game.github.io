@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RoboRumble — Lunar Combat Engineering</title>
 <meta name="description" content="Design combat robots and compete live on the biggest engineering show in the solar system. Ages 15–17.">
+<link rel="icon" type="image/png" href="roboRumble_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -1440,6 +1441,11 @@ document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
       clickedComp = -1;
     }
   });
+
+  window.addEventListener('scroll', () => {
+    tooltip.classList.remove('active');
+    clickedComp = -1;
+  }, { passive: true });
 
   function distToSegment(px, py, x1, y1, x2, y2) {
     const dx = x2 - x1, dy = y2 - y1;
