@@ -1026,7 +1026,6 @@ footer {
     <li><a href="#how">How It Works</a></li>
     <li><a href="#arenas">Arenas</a></li>
     <li><a href="#features">Features</a></li>
-    <li><a href="#compete">Compete</a></li>
     <li><a href="#register" class="nav-cta">Enter The Selene Open</a></li>
   </ul>
   <button class="nav-hamburger" id="navToggle" aria-label="Toggle menu">
@@ -1241,41 +1240,6 @@ footer {
   </div>
 </section>
 
-<!-- ========== WHO COMPETES ========== -->
-<section class="who-section" id="compete">
-  <div class="who-header">
-    <p class="section-label reveal">Competitors</p>
-    <h2 class="section-title reveal">Who Competes</h2>
-    <p class="section-desc reveal">The Selene Open is where the next generation of engineers proves what they can build.</p>
-  </div>
-  <div class="who-grid">
-    <div class="who-card reveal">
-      <span class="who-icon">&#127891;</span>
-      <h3 class="who-title">Students</h3>
-      <p class="who-age">Ages 15–17</p>
-      <p class="who-desc">Individual competitors designing, wiring, and coding their own combat robot from scratch.</p>
-    </div>
-    <div class="who-card reveal reveal-delay-1">
-      <span class="who-icon">&#128300;</span>
-      <h3 class="who-title">STEM Clubs</h3>
-      <p class="who-age">School teams</p>
-      <p class="who-desc">Robotics clubs and maker spaces entering team-designed bots for collaborative engineering credit.</p>
-    </div>
-    <div class="who-card reveal reveal-delay-2">
-      <span class="who-icon">&#128218;</span>
-      <h3 class="who-title">Classrooms</h3>
-      <p class="who-age">Curriculum-aligned</p>
-      <p class="who-desc">Teachers running The Selene Open as a structured unit — lesson plans, rubrics, and assessment built in.</p>
-    </div>
-    <div class="who-card reveal reveal-delay-3">
-      <span class="who-icon">&#127758;</span>
-      <h3 class="who-title">IEEE Events</h3>
-      <p class="who-age">Live tournaments</p>
-      <p class="who-desc">Regional and global IEEE-hosted events where top engineers compete for scholarships and agency apprenticeships.</p>
-    </div>
-  </div>
-</section>
-
 <!-- ========== FINAL CTA ========== -->
 <section class="final-cta" id="register">
   <h2 class="final-headline reveal">Your design. Their arena.<br>The whole world watching.</h2>
@@ -1294,7 +1258,6 @@ footer {
     <li><a href="#how">How It Works</a></li>
     <li><a href="#arenas">Arenas</a></li>
     <li><a href="#features">Features</a></li>
-    <li><a href="#compete">Compete</a></li>
     <li><a href="#register">Register</a></li>
   </ul>
   <p class="footer-copy">&copy; 2045 RoboRumble &mdash; The Selene Open. All rights reserved.</p>
@@ -1366,12 +1329,13 @@ document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
   const tooltipStats = document.getElementById('tooltipStats');
   const wrap = canvas.parentElement;
 
-  let W, H, dpr;
+  let W, H, dpr, GRID;
   function resize() {
     const rect = wrap.getBoundingClientRect();
     dpr = window.devicePixelRatio || 1;
     W = rect.width;
-    H = 500;
+    GRID = Math.floor(W / 14);
+    H = GRID * 7;
     canvas.width = W * dpr;
     canvas.height = H * dpr;
     canvas.style.height = H + 'px';
@@ -1379,8 +1343,6 @@ document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
   }
   resize();
   window.addEventListener('resize', resize);
-
-  const GRID = 60;
   const components = [
     { x: 3, y: 2, type: 'battery', label: 'LiFePO4 Battery', stats: 'Capacity: 2400 mAh\nVoltage: 12.8V\nMax Draw: 15A\nMass: 340g', color: '#00ff88' },
     { x: 7, y: 2, type: 'motor', label: 'Brushless DC Motor', stats: 'Power: 48W\nRPM: 12,000\nTorque: 0.38 Nm\nEfficiency: 89%', color: '#00cfff' },
