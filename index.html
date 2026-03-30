@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RoboRumble — The Selene Open 2045</title>
-<meta name="description" content="Design combat robots and compete in The Selene Open, an annual lunar engineering tournament. Ages 15–17.">
+<title>RoboRumble — Lunar Combat Engineering</title>
+<meta name="description" content="Design combat robots and compete live on the biggest engineering show in the solar system. Ages 15–17.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -806,7 +806,7 @@ nav {
 }
 .circuit-tooltip {
   display: none;
-  position: absolute;
+  position: fixed;
   background: var(--gray-800);
   border: 1px solid var(--green);
   border-radius: 6px;
@@ -814,7 +814,7 @@ nav {
   font-size: 12px;
   color: var(--gray-200);
   pointer-events: none;
-  z-index: 10;
+  z-index: 99995;
   max-width: 220px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
@@ -1026,7 +1026,7 @@ footer {
     <li><a href="#how">How It Works</a></li>
     <li><a href="#arenas">Arenas</a></li>
     <li><a href="#features">Features</a></li>
-    <li><a href="#register" class="nav-cta">Enter The Selene Open</a></li>
+    <li><a href="#register" class="nav-cta">Enter RoboRumble</a></li>
   </ul>
   <button class="nav-hamburger" id="navToggle" aria-label="Toggle menu">
     <span></span><span></span><span></span>
@@ -1042,10 +1042,10 @@ footer {
   </div>
   <div class="hero-content">
     <img src="roboRumble_logo.png" alt="RoboRumble" class="hero-logo">
-    <h1 class="hero-title" data-text="THE SELENE OPEN">THE SELENE OPEN</h1>
+    <h1 class="hero-title" data-text="ROBORUMBLE">ROBORUMBLE</h1>
     <p class="hero-subtitle" data-text="ENGINEER. BATTLE. DOMINATE.">ENGINEER. BATTLE. DOMINATE.</p>
-    <p class="hero-tagline">2045. Lunar orbit. The world is watching.</p>
-    <p class="hero-tagline-secondary">Design the robot. Win the tournament. Earn your place among the stars.</p>
+    <p class="hero-tagline">2045. Lunar broadcast. Millions are watching.</p>
+    <p class="hero-tagline-secondary">Design your combat robot. Enter the arena. Compete live on the biggest engineering show in the solar system.</p>
     <div class="hero-ctas">
       <a href="#register" class="btn-primary">Enter Now</a>
       <a href="#" class="btn-secondary">&#9654; Watch Last Season</a>
@@ -1057,16 +1057,16 @@ footer {
 <div class="ticker-wrap">
   <div class="ticker" id="ticker">
     <div class="ticker-content">
-      <span class="hl">SELENE OPEN 2045</span><span class="sep">&#x25C6;</span>
-      LIVE FROM ARTEMIS BASE DELTA<span class="sep">&#x25C6;</span>
+      <span class="hl">ROBORUMBLE SEASON 3</span><span class="sep">&#x25C6;</span>
+      LIVE FROM THE LUNAR ARENA<span class="sep">&#x25C6;</span>
       <span class="hl">138 ENGINEERS</span> REGISTERED<span class="sep">&#x25C6;</span>
       QUALIFICATION ROUNDS OPEN<span class="sep">&#x25C6;</span>
       NEXT MATCH: <span class="hl">14:32 UTC</span><span class="sep">&#x25C6;</span>
       BROADCAST DELAY: 1.3s<span class="sep">&#x25C6;</span>
     </div>
     <div class="ticker-content">
-      <span class="hl">SELENE OPEN 2045</span><span class="sep">&#x25C6;</span>
-      LIVE FROM ARTEMIS BASE DELTA<span class="sep">&#x25C6;</span>
+      <span class="hl">ROBORUMBLE SEASON 3</span><span class="sep">&#x25C6;</span>
+      LIVE FROM THE LUNAR ARENA<span class="sep">&#x25C6;</span>
       <span class="hl">138 ENGINEERS</span> REGISTERED<span class="sep">&#x25C6;</span>
       QUALIFICATION ROUNDS OPEN<span class="sep">&#x25C6;</span>
       NEXT MATCH: <span class="hl">14:32 UTC</span><span class="sep">&#x25C6;</span>
@@ -1244,7 +1244,7 @@ footer {
 <section class="final-cta" id="register">
   <h2 class="final-headline reveal">Your design. Their arena.<br>The whole world watching.</h2>
   <p class="final-sub reveal">The Selene Open 2045 qualification rounds are open. 138 engineers and counting.</p>
-  <a href="#" class="btn-primary reveal reveal-delay-1">Register for The Selene Open</a>
+  <a href="#" class="btn-primary reveal reveal-delay-1">Register for RoboRumble</a>
 </section>
 
 <!-- ========== FOOTER ========== -->
@@ -1260,7 +1260,7 @@ footer {
     <li><a href="#features">Features</a></li>
     <li><a href="#register">Register</a></li>
   </ul>
-  <p class="footer-copy">&copy; 2045 RoboRumble &mdash; The Selene Open. All rights reserved.</p>
+  <p class="footer-copy">&copy; 2045 RoboRumble. All rights reserved.</p>
 </footer>
 
 <script>
@@ -1403,9 +1403,13 @@ document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
         clickedComp = i;
         tooltipTitle.textContent = c.label;
         tooltipStats.innerHTML = c.stats.replace(/\n/g, '<br>');
-        let tx = px + 30, ty = py - 40;
-        if (tx + 220 > W) tx = px - 240;
-        if (ty < 0) ty = 10;
+        const rect = canvas.getBoundingClientRect();
+        let tx = rect.left + px + 30;
+        let ty = rect.top + py - 40;
+        if (tx + 220 > window.innerWidth) tx = rect.left + px - 240;
+        if (tx < 8) tx = 8;
+        if (ty < 8) ty = 8;
+        if (ty + 120 > window.innerHeight) ty = window.innerHeight - 130;
         tooltip.style.left = tx + 'px';
         tooltip.style.top = ty + 'px';
         tooltip.classList.add('active');
