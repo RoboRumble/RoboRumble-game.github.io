@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoboRumble — The Selene Open 2045</title>
+<meta name="description" content="Design combat robots and compete in The Selene Open, an annual lunar engineering tournament. Ages 15–17.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ========== RESET & BASE ========== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --black: #050508;
+  --gray-900: #0a0a10;
+  --gray-800: #12121c;
+  --gray-700: #1a1a28;
+  --gray-600: #2a2a3a;
+  --gray-500: #4a4a5a;
+  --gray-400: #7a7a8a;
+  --gray-300: #a0a0b0;
+  --gray-200: #c8c8d4;
+  --green: #00ff88;
+  --green-dim: #00cc6a;
+  --green-glow: rgba(0, 255, 136, 0.3);
+  --blue: #00cfff;
+  --blue-dim: #00a0cc;
+  --blue-glow: rgba(0, 207, 255, 0.25);
+  --orange: #ff6b35;
+  --orange-glow: rgba(255, 107, 53, 0.3);
+  --font-display: 'Orbitron', sans-serif;
+  --font-body: 'Space Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--gray-200);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+a { color: var(--green); text-decoration: none; cursor: none; }
+a:hover { color: #fff; }
+button, input { cursor: none; }
+
+/* ========== CUSTOM CURSOR ========== */
+.cursor-dot {
+  position: fixed;
+  top: 0; left: 0;
+  width: 8px; height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 100000;
+  transition: transform 0.1s ease;
+  box-shadow: 0 0 12px var(--green), 0 0 24px var(--green-glow);
+}
+.cursor-ring {
+  position: fixed;
+  top: 0; left: 0;
+  width: 32px; height: 32px;
+  border: 1.5px solid rgba(0, 255, 136, 0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  transition: transform 0.15s ease, width 0.2s, height 0.2s, border-color 0.2s;
+}
+/* Crosshair lines */
+.cursor-ring::before, .cursor-ring::after {
+  content: '';
+  position: absolute;
+  background: rgba(0, 255, 136, 0.35);
+}
+.cursor-ring::before {
+  width: 1px; height: 100%;
+  left: 50%; top: 0;
+  transform: translateX(-50%);
+}
+.cursor-ring::after {
+  width: 100%; height: 1px;
+  top: 50%; left: 0;
+  transform: translateY(-50%);
+}
+
+/* ========== CIRCUIT GRID BACKGROUND ========== */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-image:
+    linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+    linear-gradient(rgba(0, 207, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 207, 255, 0.015) 1px, transparent 1px);
+  background-size: 60px 60px, 60px 60px, 20px 20px, 20px 20px;
+  pointer-events: none;
+}
+
+/* ========== SCANLINE OVERLAY ========== */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 99990;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.04) 2px,
+    rgba(0, 0, 0, 0.04) 4px
+  );
+}
+
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--gray-900); }
+::-webkit-scrollbar-thumb { background: var(--gray-600); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--green); }
+
+/* ========== UTILITY ========== */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.section-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 12px;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.section-desc {
+  color: var(--gray-400);
+  max-width: 600px;
+  font-size: 13px;
+}
+
+/* Reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ========== NAVIGATION ========== */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 9999;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(5, 5, 8, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 255, 136, 0.08);
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  color: #fff;
+}
+.nav-logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  background: var(--green);
+  color: var(--black);
+  font-size: 14px;
+  font-weight: 900;
+  border-radius: 6px;
+  letter-spacing: -1px;
+}
+.nav-logo-text { letter-spacing: 3px; font-size: 13px; }
+.nav-logo-text span { color: var(--gray-500); }
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  list-style: none;
+}
+.nav-links a {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--green); }
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--black);
+  background: var(--green);
+  border: none;
+  border-radius: 4px;
+  transition: all 0.3s;
+  box-shadow: 0 0 20px var(--green-glow), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.nav-cta:hover {
+  background: #fff;
+  color: var(--black);
+  box-shadow: 0 0 30px rgba(255,255,255,0.2);
+}
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 4px;
+}
+.nav-hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--green);
+  transition: 0.3s;
+}
+
+/* ========== HERO ========== */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 100px 24px 60px;
+  overflow: hidden;
+}
+.hero-content { position: relative; z-index: 2; }
+
+/* Pulsing rings */
+.hero-rings {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  pointer-events: none;
+}
+.hero-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 207, 255, 0.12);
+  transform: translate(-50%, -50%);
+  animation: pulse-ring 4s ease-out infinite;
+}
+.hero-ring:nth-child(1) { width: 300px; height: 300px; animation-delay: 0s; }
+.hero-ring:nth-child(2) { width: 500px; height: 500px; animation-delay: 1.3s; }
+.hero-ring:nth-child(3) { width: 700px; height: 700px; animation-delay: 2.6s; }
+
+@keyframes pulse-ring {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
+}
+
+/* Glitch title */
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(42px, 8vw, 96px);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 8px;
+  line-height: 1.1;
+  margin-bottom: 8px;
+  position: relative;
+  animation: glitch-skew 4s infinite linear alternate-reverse;
+}
+.hero-title::before,
+.hero-title::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  overflow: hidden;
+}
+.hero-title::before {
+  color: var(--blue);
+  z-index: -1;
+  animation: glitch-1 3s infinite linear alternate-reverse;
+  clip-path: inset(0 0 65% 0);
+}
+.hero-title::after {
+  color: var(--orange);
+  z-index: -1;
+  animation: glitch-2 2.5s infinite linear alternate-reverse;
+  clip-path: inset(60% 0 0 0);
+}
+@keyframes glitch-1 {
+  0%, 90% { transform: translate(0); }
+  92% { transform: translate(-4px, 2px); }
+  94% { transform: translate(3px, -1px); }
+  96% { transform: translate(-2px, 3px); }
+  98% { transform: translate(4px, -2px); }
+  100% { transform: translate(0); }
+}
+@keyframes glitch-2 {
+  0%, 88% { transform: translate(0); }
+  90% { transform: translate(3px, -2px); }
+  93% { transform: translate(-4px, 1px); }
+  95% { transform: translate(2px, 3px); }
+  97% { transform: translate(-3px, -1px); }
+  100% { transform: translate(0); }
+}
+@keyframes glitch-skew {
+  0%, 95% { transform: skew(0deg); }
+  96% { transform: skew(0.5deg); }
+  97% { transform: skew(-0.3deg); }
+  98% { transform: skew(0.4deg); }
+  100% { transform: skew(0deg); }
+}
+
+.hero-subtitle {
+  font-family: var(--font-display);
+  font-size: clamp(16px, 3vw, 28px);
+  font-weight: 700;
+  letter-spacing: 10px;
+  color: var(--green);
+  margin-bottom: 24px;
+  position: relative;
+  animation: glitch-skew 5s infinite linear alternate-reverse;
+}
+.hero-subtitle::before,
+.hero-subtitle::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0; left: 0; right: 0;
+}
+.hero-subtitle::before {
+  color: var(--blue);
+  z-index: -1;
+  animation: glitch-1 4s infinite linear alternate-reverse;
+  clip-path: inset(0 0 50% 0);
+}
+.hero-subtitle::after {
+  color: var(--orange);
+  z-index: -1;
+  animation: glitch-2 3.5s infinite linear alternate-reverse;
+  clip-path: inset(50% 0 0 0);
+}
+
+.hero-tagline {
+  font-family: var(--font-body);
+  font-size: clamp(12px, 1.5vw, 16px);
+  color: var(--gray-400);
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+}
+.hero-tagline-secondary {
+  font-family: var(--font-body);
+  font-size: clamp(11px, 1.2vw, 14px);
+  color: var(--gray-500);
+  margin-bottom: 40px;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero-ctas {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--black);
+  background: var(--green);
+  border: none;
+  border-radius: 4px;
+  transition: all 0.3s;
+  box-shadow: 0 0 30px var(--green-glow);
+}
+.btn-primary:hover {
+  background: #fff;
+  color: var(--black);
+  box-shadow: 0 0 40px rgba(255,255,255,0.2);
+  transform: translateY(-2px);
+}
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--blue);
+  background: transparent;
+  border: 1px solid rgba(0, 207, 255, 0.3);
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+.btn-secondary:hover {
+  border-color: var(--blue);
+  background: rgba(0, 207, 255, 0.08);
+  box-shadow: 0 0 20px var(--blue-glow);
+  transform: translateY(-2px);
+  color: #fff;
+}
+
+/* ========== BROADCAST TICKER ========== */
+.ticker-wrap {
+  background: var(--gray-900);
+  border-top: 1px solid rgba(0, 255, 136, 0.1);
+  border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+  overflow: hidden;
+  padding: 12px 0;
+  position: relative;
+}
+.ticker-wrap::before {
+  content: 'LIVE';
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--black);
+  background: var(--orange);
+  padding: 3px 8px;
+  border-radius: 3px;
+  letter-spacing: 2px;
+  z-index: 3;
+  animation: live-blink 2s infinite;
+}
+@keyframes live-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.ticker {
+  display: flex;
+  animation: ticker-scroll 30s linear infinite;
+  white-space: nowrap;
+}
+.ticker-content {
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  padding: 0 24px;
+}
+.ticker-content .hl { color: var(--green); }
+.ticker-content .sep { color: var(--gray-600); margin: 0 12px; }
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ========== STATS BAR ========== */
+.stats-bar {
+  padding: 48px 24px;
+  border-bottom: 1px solid var(--gray-800);
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+.stat-item {}
+.stat-number {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-number .stat-accent { color: var(--green); }
+.stat-label {
+  font-size: 11px;
+  color: var(--gray-500);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ========== HOW IT WORKS ========== */
+.how-section {
+  padding: 100px 24px;
+  border-bottom: 1px solid var(--gray-800);
+}
+.how-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+.how-header .section-desc { margin: 0 auto; }
+.how-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+  position: relative;
+}
+/* Connecting line */
+.how-grid::before {
+  content: '';
+  position: absolute;
+  top: 48px;
+  left: 12.5%;
+  right: 12.5%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--green-dim), var(--green-dim), transparent);
+  opacity: 0.3;
+}
+.how-card {
+  position: relative;
+  background: var(--gray-900);
+  border: 1px solid var(--gray-700);
+  border-radius: 8px;
+  padding: 40px 20px 28px;
+  text-align: center;
+  overflow: hidden;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.how-card:hover {
+  border-color: var(--green);
+  transform: translateY(-4px);
+}
+/* Sweep animation on hover */
+.how-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,255,136,0.04), transparent);
+  transition: left 0.5s ease;
+}
+.how-card:hover::after { left: 100%; }
+.how-ghost {
+  font-family: var(--font-display);
+  font-size: 64px;
+  font-weight: 900;
+  color: rgba(0, 255, 136, 0.06);
+  position: absolute;
+  top: -8px; right: 12px;
+  line-height: 1;
+  user-select: none;
+}
+.how-icon {
+  width: 48px; height: 48px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 255, 136, 0.08);
+  border: 1px solid rgba(0, 255, 136, 0.15);
+  font-size: 20px;
+  position: relative;
+  z-index: 1;
+}
+.how-step {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--green);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+.how-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+.how-desc {
+  font-size: 12px;
+  color: var(--gray-400);
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+}
+
+/* ========== ARENAS ========== */
+.arenas-section {
+  padding: 100px 24px;
+  border-bottom: 1px solid var(--gray-800);
+}
+.arenas-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.arenas-header .section-desc { margin: 0 auto; }
+.arenas-scroll {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.arena-card {
+  background: var(--gray-900);
+  border: 1px solid var(--gray-700);
+  border-radius: 8px;
+  padding: 28px 20px;
+  text-align: center;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.arena-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--green);
+  transform: scaleX(0);
+  transition: transform 0.3s;
+}
+.arena-card:hover::before { transform: scaleX(1); }
+.arena-card:hover {
+  border-color: var(--green);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 255, 136, 0.08);
+}
+.arena-icon {
+  font-size: 32px;
+  margin-bottom: 16px;
+  display: block;
+}
+.arena-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+.arena-subtitle {
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--green);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.arena-desc {
+  font-size: 12px;
+  color: var(--gray-400);
+  line-height: 1.6;
+}
+
+/* ========== FEATURES BENTO ========== */
+.features-section {
+  padding: 100px 24px;
+  border-bottom: 1px solid var(--gray-800);
+}
+.features-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.features-header .section-desc { margin: 0 auto; }
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: auto auto;
+  gap: 16px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.bento-card {
+  background: var(--gray-900);
+  border: 1px solid var(--gray-700);
+  border-radius: 8px;
+  padding: 32px 24px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.bento-card:hover {
+  border-color: var(--green);
+  transform: translateY(-2px);
+}
+.bento-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--green), var(--blue));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s;
+}
+.bento-card:hover::after { transform: scaleX(1); }
+.bento-large { grid-column: span 2; grid-row: span 2; }
+.bento-large .bento-title { font-size: 20px; margin-bottom: 12px; }
+.bento-large .bento-desc { font-size: 14px; }
+.bento-icon {
+  font-size: 28px;
+  margin-bottom: 16px;
+  display: block;
+}
+.bento-tag {
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 8px;
+}
+.bento-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+.bento-desc {
+  font-size: 12px;
+  color: var(--gray-400);
+  line-height: 1.7;
+}
+
+/* ========== CIRCUIT INTERACTIVE ========== */
+.circuit-section {
+  padding: 100px 24px;
+  border-bottom: 1px solid var(--gray-800);
+}
+.circuit-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.circuit-header .section-desc { margin: 0 auto; }
+.circuit-canvas-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  background: var(--gray-900);
+  border: 1px solid var(--gray-700);
+  border-radius: 8px;
+  overflow: hidden;
+}
+#circuitCanvas {
+  display: block;
+  width: 100%;
+  cursor: none;
+}
+.circuit-tooltip {
+  display: none;
+  position: absolute;
+  background: var(--gray-800);
+  border: 1px solid var(--green);
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--gray-200);
+  pointer-events: none;
+  z-index: 10;
+  max-width: 220px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.circuit-tooltip.active { display: block; }
+.circuit-tooltip-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--green);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.circuit-tooltip-stats {
+  font-size: 11px;
+  color: var(--gray-400);
+  line-height: 1.6;
+}
+
+/* ========== WHO COMPETES ========== */
+.who-section {
+  padding: 100px 24px;
+  border-bottom: 1px solid var(--gray-800);
+}
+.who-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.who-header .section-desc { margin: 0 auto; }
+.who-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.who-card {
+  background: var(--gray-900);
+  border: 1px solid var(--gray-700);
+  border-radius: 8px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.3s;
+}
+.who-card:hover {
+  border-color: var(--blue);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px var(--blue-glow);
+}
+.who-icon {
+  font-size: 36px;
+  margin-bottom: 16px;
+  display: block;
+}
+.who-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.who-age {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--blue);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.who-desc {
+  font-size: 12px;
+  color: var(--gray-400);
+  line-height: 1.6;
+}
+
+/* ========== FINAL CTA ========== */
+.final-cta {
+  padding: 120px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.final-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(0, 255, 136, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+.final-headline {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 4vw, 44px);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  position: relative;
+}
+.final-sub {
+  font-size: 14px;
+  color: var(--gray-400);
+  margin-bottom: 40px;
+  position: relative;
+}
+.final-cta .btn-primary { position: relative; font-size: 15px; padding: 18px 40px; }
+
+/* ========== FOOTER ========== */
+footer {
+  padding: 48px 24px;
+  border-top: 1px solid var(--gray-800);
+  text-align: center;
+}
+.footer-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.footer-logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  background: var(--green);
+  color: var(--black);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+  border-radius: 4px;
+}
+.footer-logo-text {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 3px;
+}
+.footer-ieee {
+  font-size: 11px;
+  color: var(--gray-500);
+  margin-bottom: 20px;
+}
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  list-style: none;
+  margin-bottom: 20px;
+}
+.footer-links a {
+  font-size: 11px;
+  color: var(--gray-400);
+  letter-spacing: 1px;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--green); }
+.footer-copy {
+  font-size: 11px;
+  color: var(--gray-600);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .arenas-scroll { grid-template-columns: repeat(3, 1fr); }
+  .bento-grid { grid-template-columns: repeat(2, 1fr); }
+  .bento-large { grid-column: span 2; grid-row: span 1; }
+}
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-links.open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 64px; left: 0; right: 0;
+    background: rgba(5, 5, 8, 0.97);
+    padding: 24px;
+    gap: 20px;
+    border-bottom: 1px solid var(--gray-700);
+  }
+  .how-grid { grid-template-columns: repeat(2, 1fr); }
+  .how-grid::before { display: none; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .arenas-scroll { grid-template-columns: repeat(2, 1fr); }
+  .bento-grid { grid-template-columns: 1fr; }
+  .bento-large { grid-column: span 1; }
+  .who-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-title { letter-spacing: 4px; }
+  .hero-subtitle { letter-spacing: 4px; }
+  /* Hide custom cursor on mobile/touch */
+  .cursor-dot, .cursor-ring { display: none; }
+  body { cursor: auto; }
+  a, button, input { cursor: auto; }
+}
+@media (max-width: 480px) {
+  .how-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .arenas-scroll { grid-template-columns: 1fr; }
+  .who-grid { grid-template-columns: 1fr; }
+  .hero-ctas { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ========== NAV ========== -->
+<nav>
+  <a href="#" class="nav-logo">
+    <span class="nav-logo-mark">RR</span>
+    <span class="nav-logo-text">ROBO<span>R</span>UMBLE</span>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#arenas">Arenas</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#compete">Compete</a></li>
+    <li><a href="#register" class="nav-cta">Enter The Selene Open</a></li>
+  </ul>
+  <button class="nav-hamburger" id="navToggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ========== HERO ========== -->
+<section class="hero" id="hero">
+  <div class="hero-rings">
+    <div class="hero-ring"></div>
+    <div class="hero-ring"></div>
+    <div class="hero-ring"></div>
+  </div>
+  <div class="hero-content">
+    <h1 class="hero-title" data-text="THE SELENE OPEN">THE SELENE OPEN</h1>
+    <p class="hero-subtitle" data-text="ENGINEER. BATTLE. DOMINATE.">ENGINEER. BATTLE. DOMINATE.</p>
+    <p class="hero-tagline">2045. Lunar orbit. The world is watching.</p>
+    <p class="hero-tagline-secondary">Design the robot. Win the tournament. Earn your place among the stars.</p>
+    <div class="hero-ctas">
+      <a href="#register" class="btn-primary">Enter Now</a>
+      <a href="#" class="btn-secondary">&#9654; Watch Last Season</a>
+    </div>
+  </div>
+</section>
+
+<!-- ========== BROADCAST TICKER ========== -->
+<div class="ticker-wrap">
+  <div class="ticker" id="ticker">
+    <div class="ticker-content">
+      <span class="hl">SELENE OPEN 2045</span><span class="sep">&#x25C6;</span>
+      LIVE FROM ARTEMIS BASE DELTA<span class="sep">&#x25C6;</span>
+      <span class="hl">138 ENGINEERS</span> REGISTERED<span class="sep">&#x25C6;</span>
+      QUALIFICATION ROUNDS OPEN<span class="sep">&#x25C6;</span>
+      NEXT MATCH: <span class="hl">14:32 UTC</span><span class="sep">&#x25C6;</span>
+      BROADCAST DELAY: 1.3s<span class="sep">&#x25C6;</span>
+    </div>
+    <div class="ticker-content">
+      <span class="hl">SELENE OPEN 2045</span><span class="sep">&#x25C6;</span>
+      LIVE FROM ARTEMIS BASE DELTA<span class="sep">&#x25C6;</span>
+      <span class="hl">138 ENGINEERS</span> REGISTERED<span class="sep">&#x25C6;</span>
+      QUALIFICATION ROUNDS OPEN<span class="sep">&#x25C6;</span>
+      NEXT MATCH: <span class="hl">14:32 UTC</span><span class="sep">&#x25C6;</span>
+      BROADCAST DELAY: 1.3s<span class="sep">&#x25C6;</span>
+    </div>
+  </div>
+</div>
+
+<!-- ========== STATS BAR ========== -->
+<section class="stats-bar">
+  <div class="stats-grid">
+    <div class="stat-item reveal">
+      <div class="stat-number"><span class="stat-accent">138</span></div>
+      <div class="stat-label">Learners Surveyed</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-1">
+      <div class="stat-number">5</div>
+      <div class="stat-label">Lunar Arenas</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-2">
+      <div class="stat-number">100<span class="stat-accent">%</span></div>
+      <div class="stat-label">Browser-Based</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-3">
+      <div class="stat-number">15–17</div>
+      <div class="stat-label">Ages</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== HOW IT WORKS ========== -->
+<section class="how-section" id="how">
+  <div class="how-header">
+    <p class="section-label reveal">The Process</p>
+    <h2 class="section-title reveal">How It Works</h2>
+    <p class="section-desc reveal">From blueprint to broadcast — four steps between you and the lunar arena.</p>
+  </div>
+  <div class="how-grid">
+    <div class="how-card reveal">
+      <span class="how-ghost">01</span>
+      <div class="how-icon">&#9881;</div>
+      <p class="how-step">Step 01</p>
+      <h3 class="how-title">Design Your Bot</h3>
+      <p class="how-desc">Choose your chassis, weapons, and armour. Every gram counts when the launch manifest has a mass budget.</p>
+    </div>
+    <div class="how-card reveal reveal-delay-1">
+      <span class="how-ghost">02</span>
+      <div class="how-icon">&#9889;</div>
+      <p class="how-step">Step 02</p>
+      <h3 class="how-title">Wire the Circuit</h3>
+      <p class="how-desc">Connect batteries, motors, and sensors on a real circuit board. Get the wiring wrong and your bot shorts out mid-fight.</p>
+    </div>
+    <div class="how-card reveal reveal-delay-2">
+      <span class="how-ghost">03</span>
+      <div class="how-icon">&#9878;</div>
+      <p class="how-step">Step 03</p>
+      <h3 class="how-title">Submit to the Machine Shop</h3>
+      <p class="how-desc">Upload your design to the Artemis base fabrication queue. The shop prints, assembles, and inspects — just like the real programme.</p>
+    </div>
+    <div class="how-card reveal reveal-delay-3">
+      <span class="how-ghost">04</span>
+      <div class="how-icon">&#9788;</div>
+      <p class="how-step">Step 04</p>
+      <h3 class="how-title">Watch It Fight on the Moon</h3>
+      <p class="how-desc">Your robot enters the arena 384,400 km away. Watch the broadcast with a 1.3-second delay — just like Mission Control.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== ARENAS ========== -->
+<section class="arenas-section" id="arenas">
+  <div class="arenas-header">
+    <p class="section-label reveal">Battlegrounds</p>
+    <h2 class="section-title reveal">The Five Arenas</h2>
+    <p class="section-desc reveal">Each arena isolates a core electrical engineering constraint. Master one, master them all.</p>
+  </div>
+  <div class="arenas-scroll">
+    <div class="arena-card reveal">
+      <span class="arena-icon">&#127759;</span>
+      <h3 class="arena-name">Regolith Flats</h3>
+      <p class="arena-subtitle">Power Management</p>
+      <p class="arena-desc">Open lunar terrain. No tricks, no shortcuts — just you and your power budget. The proving ground where every milliamp matters.</p>
+    </div>
+    <div class="arena-card reveal reveal-delay-1">
+      <span class="arena-icon">&#128295;</span>
+      <h3 class="arena-name">The Conduit</h3>
+      <p class="arena-subtitle">Wiring Reliability</p>
+      <p class="arena-desc">Narrow sub-surface corridors filled with vibration. Loose connections fail here. Only the cleanest wiring survives.</p>
+    </div>
+    <div class="arena-card reveal reveal-delay-2">
+      <span class="arena-icon">&#9728;</span>
+      <h3 class="arena-name">Helios Shelf</h3>
+      <p class="arena-subtitle">Sensor Shielding</p>
+      <p class="arena-desc">Peak solar exposure on the crater rim. Radiation floods your sensors — shield them or fight blind.</p>
+    </div>
+    <div class="arena-card reveal reveal-delay-3">
+      <span class="arena-icon">&#127761;</span>
+      <h3 class="arena-name">Shadowside</h3>
+      <p class="arena-subtitle">Battery Efficiency</p>
+      <p class="arena-desc">Permanent shadow. Zero solar. Your battery is all you have — manage draw or shut down before the final round.</p>
+    </div>
+    <div class="arena-card reveal reveal-delay-4">
+      <span class="arena-icon">&#128293;</span>
+      <h3 class="arena-name">The Forge</h3>
+      <p class="arena-subtitle">Thermal Load</p>
+      <p class="arena-desc">Volcanic vent proximity. Extreme heat degrades components in real time. Cooling strategy is your weapon here.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FEATURES BENTO ========== -->
+<section class="features-section" id="features">
+  <div class="features-header">
+    <p class="section-label reveal">What's Inside</p>
+    <h2 class="section-title reveal">Built for Real Learning</h2>
+    <p class="section-desc reveal">Every feature exists because 138 learners told us what actually works.</p>
+  </div>
+  <div class="bento-grid">
+    <div class="bento-card bento-large reveal">
+      <span class="bento-icon">&#128165;</span>
+      <p class="bento-tag">Core Philosophy</p>
+      <h3 class="bento-title">Learning Through Failure</h3>
+      <p class="bento-desc">Invalid builds aren't rejected — they enter combat and visibly malfunction. A reversed motor spins the wrong way. An overloaded circuit pops a fuse mid-fight. You don't read an error message — you watch your robot fail, understand why, and fix it. Failure is the best teacher on the moon.</p>
+    </div>
+    <div class="bento-card reveal reveal-delay-1">
+      <span class="bento-icon">&#128736;</span>
+      <p class="bento-tag">Programming</p>
+      <h3 class="bento-title">Dual-Layer Programming</h3>
+      <p class="bento-desc">Start with Scratch-style blocks, peek at the real code underneath. A two-way bridge so the training wheels come off naturally.</p>
+    </div>
+    <div class="bento-card reveal reveal-delay-2">
+      <span class="bento-icon">&#129302;</span>
+      <p class="bento-tag">Curriculum</p>
+      <h3 class="bento-title">AI Opponent Progression</h3>
+      <p class="bento-desc">Scaffolded difficulty through increasingly sophisticated AI bots — from basics to championship-level strategy.</p>
+    </div>
+    <div class="bento-card reveal reveal-delay-1">
+      <span class="bento-icon">&#9654;</span>
+      <p class="bento-tag">Replay</p>
+      <h3 class="bento-title">Live Battle Replay</h3>
+      <p class="bento-desc">Watch your robot behave exactly as wired. Slow-motion, circuit overlay, current visualisation — debug in replay, not in theory.</p>
+    </div>
+    <div class="bento-card reveal reveal-delay-2">
+      <span class="bento-icon">&#127942;</span>
+      <p class="bento-tag">Competition</p>
+      <h3 class="bento-title">Global Leaderboard</h3>
+      <p class="bento-desc">Ranked by engineering quality — not reflexes. Circuit efficiency, power management, and design elegance all count.</p>
+    </div>
+    <div class="bento-card reveal reveal-delay-3">
+      <span class="bento-icon">&#127760;</span>
+      <p class="bento-tag">Access</p>
+      <h3 class="bento-title">Browser-Based</h3>
+      <p class="bento-desc">One link, classroom-ready in minutes. No installs, no IT tickets, no excuses. Chrome, Firefox, Safari — it just works.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== INTERACTIVE CIRCUIT ========== -->
+<section class="circuit-section" id="circuit">
+  <div class="circuit-header">
+    <p class="section-label reveal">Try It</p>
+    <h2 class="section-title reveal">Circuit Grid</h2>
+    <p class="section-desc reveal">Hover over wires to see current flow. Click a component to inspect its electrical stats.</p>
+  </div>
+  <div class="circuit-canvas-wrap reveal">
+    <canvas id="circuitCanvas" width="900" height="500"></canvas>
+    <div class="circuit-tooltip" id="circuitTooltip">
+      <div class="circuit-tooltip-title" id="tooltipTitle"></div>
+      <div class="circuit-tooltip-stats" id="tooltipStats"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== WHO COMPETES ========== -->
+<section class="who-section" id="compete">
+  <div class="who-header">
+    <p class="section-label reveal">Competitors</p>
+    <h2 class="section-title reveal">Who Competes</h2>
+    <p class="section-desc reveal">The Selene Open is where the next generation of engineers proves what they can build.</p>
+  </div>
+  <div class="who-grid">
+    <div class="who-card reveal">
+      <span class="who-icon">&#127891;</span>
+      <h3 class="who-title">Students</h3>
+      <p class="who-age">Ages 15–17</p>
+      <p class="who-desc">Individual competitors designing, wiring, and coding their own combat robot from scratch.</p>
+    </div>
+    <div class="who-card reveal reveal-delay-1">
+      <span class="who-icon">&#128300;</span>
+      <h3 class="who-title">STEM Clubs</h3>
+      <p class="who-age">School teams</p>
+      <p class="who-desc">Robotics clubs and maker spaces entering team-designed bots for collaborative engineering credit.</p>
+    </div>
+    <div class="who-card reveal reveal-delay-2">
+      <span class="who-icon">&#128218;</span>
+      <h3 class="who-title">Classrooms</h3>
+      <p class="who-age">Curriculum-aligned</p>
+      <p class="who-desc">Teachers running The Selene Open as a structured unit — lesson plans, rubrics, and assessment built in.</p>
+    </div>
+    <div class="who-card reveal reveal-delay-3">
+      <span class="who-icon">&#127758;</span>
+      <h3 class="who-title">IEEE Events</h3>
+      <p class="who-age">Live tournaments</p>
+      <p class="who-desc">Regional and global IEEE-hosted events where top engineers compete for scholarships and agency apprenticeships.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== FINAL CTA ========== -->
+<section class="final-cta" id="register">
+  <h2 class="final-headline reveal">Your design. Their arena.<br>The whole world watching.</h2>
+  <p class="final-sub reveal">The Selene Open 2045 qualification rounds are open. 138 engineers and counting.</p>
+  <a href="#" class="btn-primary reveal reveal-delay-1">Register for The Selene Open</a>
+</section>
+
+<!-- ========== FOOTER ========== -->
+<footer>
+  <div class="footer-logo">
+    <span class="footer-logo-mark">RR</span>
+    <span class="footer-logo-text">ROBORUMBLE</span>
+  </div>
+  <p class="footer-ieee">An IEEE Future Tech Explorers Challenge entry</p>
+  <ul class="footer-links">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#arenas">Arenas</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#compete">Compete</a></li>
+    <li><a href="#register">Register</a></li>
+  </ul>
+  <p class="footer-copy">&copy; 2045 RoboRumble &mdash; The Selene Open. All rights reserved.</p>
+</footer>
+
+<script>
+/* ========== CUSTOM CURSOR ========== */
+(() => {
+  const dot = document.getElementById('cursorDot');
+  const ring = document.getElementById('cursorRing');
+  if (!dot || !ring) return;
+  let mx = -100, my = -100, rx = -100, ry = -100;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    dot.style.transform = `translate(${mx - 4}px, ${my - 4}px)`;
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.15;
+    ry += (my - ry) * 0.15;
+    ring.style.transform = `translate(${rx - 16}px, ${ry - 16}px)`;
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  document.querySelectorAll('a, button, .bento-card, .how-card, .arena-card, .who-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      ring.style.width = '48px';
+      ring.style.height = '48px';
+      ring.style.borderColor = 'rgba(0,207,255,0.5)';
+    });
+    el.addEventListener('mouseleave', () => {
+      ring.style.width = '32px';
+      ring.style.height = '32px';
+      ring.style.borderColor = 'rgba(0,255,136,0.5)';
+    });
+  });
+})();
+
+/* ========== MOBILE NAV ========== */
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+document.querySelectorAll('#navLinks a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('navLinks').classList.remove('open');
+  });
+});
+
+/* ========== SCROLL REVEAL ========== */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+/* ========== INTERACTIVE CIRCUIT GRID ========== */
+(() => {
+  const canvas = document.getElementById('circuitCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const tooltip = document.getElementById('circuitTooltip');
+  const tooltipTitle = document.getElementById('tooltipTitle');
+  const tooltipStats = document.getElementById('tooltipStats');
+  const wrap = canvas.parentElement;
+
+  let W, H, dpr;
+  function resize() {
+    const rect = wrap.getBoundingClientRect();
+    dpr = window.devicePixelRatio || 1;
+    W = rect.width;
+    H = 500;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const GRID = 60;
+  const components = [
+    { x: 3, y: 2, type: 'battery', label: 'LiFePO4 Battery', stats: 'Capacity: 2400 mAh\nVoltage: 12.8V\nMax Draw: 15A\nMass: 340g', color: '#00ff88' },
+    { x: 7, y: 2, type: 'motor', label: 'Brushless DC Motor', stats: 'Power: 48W\nRPM: 12,000\nTorque: 0.38 Nm\nEfficiency: 89%', color: '#00cfff' },
+    { x: 11, y: 2, type: 'weapon', label: 'Spinning Drum', stats: 'Tip Speed: 82 m/s\nKE Storage: 120J\nSpin-up: 1.4s\nMass: 580g', color: '#ff6b35' },
+    { x: 3, y: 5, type: 'sensor', label: 'IR Range Sensor', stats: 'Range: 0.2–3.0m\nRefresh: 50Hz\nPower: 0.8W\nFoV: 25°', color: '#00cfff' },
+    { x: 7, y: 5, type: 'motor', label: 'Drive Motor L', stats: 'Power: 36W\nRPM: 8,500\nTorque: 0.42 Nm\nEfficiency: 91%', color: '#00cfff' },
+    { x: 11, y: 5, type: 'sensor', label: 'Gyroscope IMU', stats: 'Axes: 6-DOF\nRate: 200Hz\nDrift: 0.02°/s\nPower: 0.3W', color: '#00cfff' },
+  ];
+
+  const wires = [
+    { from: [3,2], to: [7,2], },
+    { from: [7,2], to: [11,2], },
+    { from: [3,2], to: [3,5], },
+    { from: [3,5], to: [7,5], },
+    { from: [7,5], to: [11,5], },
+    { from: [7,2], to: [7,5], },
+  ];
+
+  let mouseX = -1, mouseY = -1;
+  let hoveredWire = -1;
+  let clickedComp = -1;
+  let time = 0;
+  let particles = [];
+
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+
+    // Check wire hover
+    hoveredWire = -1;
+    for (let i = 0; i < wires.length; i++) {
+      const w = wires[i];
+      const x1 = w.from[0] * GRID, y1 = w.from[1] * GRID;
+      const x2 = w.to[0] * GRID, y2 = w.to[1] * GRID;
+      const dist = distToSegment(mouseX, mouseY, x1, y1, x2, y2);
+      if (dist < 12) { hoveredWire = i; break; }
+    }
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    mouseX = -1; mouseY = -1;
+    hoveredWire = -1;
+  });
+
+  canvas.addEventListener('click', e => {
+    const rect = canvas.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+
+    clickedComp = -1;
+    tooltip.classList.remove('active');
+
+    for (let i = 0; i < components.length; i++) {
+      const c = components[i];
+      const px = c.x * GRID, py = c.y * GRID;
+      if (Math.abs(cx - px) < 24 && Math.abs(cy - py) < 24) {
+        clickedComp = i;
+        tooltipTitle.textContent = c.label;
+        tooltipStats.innerHTML = c.stats.replace(/\n/g, '<br>');
+        let tx = px + 30, ty = py - 40;
+        if (tx + 220 > W) tx = px - 240;
+        if (ty < 0) ty = 10;
+        tooltip.style.left = tx + 'px';
+        tooltip.style.top = ty + 'px';
+        tooltip.classList.add('active');
+        break;
+      }
+    }
+  });
+
+  function distToSegment(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+    let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+  }
+
+  function draw() {
+    time += 0.016;
+    ctx.clearRect(0, 0, W, H);
+
+    // Draw subtle grid
+    ctx.strokeStyle = 'rgba(0,255,136,0.04)';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x <= W; x += GRID) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let y = 0; y <= H; y += GRID) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    // Draw grid nodes
+    for (let x = GRID; x < W; x += GRID) {
+      for (let y = GRID; y < H; y += GRID) {
+        ctx.fillStyle = 'rgba(0,255,136,0.08)';
+        ctx.beginPath();
+        ctx.arc(x, y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Draw wires
+    wires.forEach((w, i) => {
+      const x1 = w.from[0] * GRID, y1 = w.from[1] * GRID;
+      const x2 = w.to[0] * GRID, y2 = w.to[1] * GRID;
+
+      const isHovered = i === hoveredWire;
+      ctx.strokeStyle = isHovered ? 'rgba(0,255,136,0.8)' : 'rgba(0,255,136,0.2)';
+      ctx.lineWidth = isHovered ? 3 : 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      if (isHovered) {
+        // Glow
+        ctx.shadowColor = '#00ff88';
+        ctx.shadowBlur = 12;
+        ctx.strokeStyle = 'rgba(0,255,136,0.4)';
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Animated current particles
+        const len = Math.hypot(x2 - x1, y2 - y1);
+        const count = Math.floor(len / 30);
+        for (let p = 0; p < count; p++) {
+          let t = ((time * 0.8 + p / count) % 1);
+          const px = x1 + (x2 - x1) * t;
+          const py = y1 + (y2 - y1) * t;
+          ctx.fillStyle = '#00ff88';
+          ctx.beginPath();
+          ctx.arc(px, py, 3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = 'rgba(0,255,136,0.3)';
+          ctx.beginPath();
+          ctx.arc(px, py, 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    });
+
+    // Draw components
+    components.forEach((c, i) => {
+      const px = c.x * GRID, py = c.y * GRID;
+      const isClicked = i === clickedComp;
+      const size = 20;
+
+      // Background circle
+      ctx.fillStyle = isClicked ? 'rgba(0,255,136,0.15)' : 'rgba(0,255,136,0.06)';
+      ctx.beginPath();
+      ctx.arc(px, py, size + 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Border
+      ctx.strokeStyle = isClicked ? c.color : 'rgba(0,255,136,0.3)';
+      ctx.lineWidth = isClicked ? 2 : 1;
+      ctx.beginPath();
+      ctx.arc(px, py, size + 6, 0, Math.PI * 2);
+      ctx.stroke();
+
+      if (isClicked) {
+        ctx.shadowColor = c.color;
+        ctx.shadowBlur = 16;
+        ctx.strokeStyle = c.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(px, py, size + 10, 0, Math.PI * 2); ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
+      // Icon
+      ctx.fillStyle = c.color;
+      ctx.font = '16px "Space Mono"';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const icons = { battery: '⚡', motor: '⚙', sensor: '◎', weapon: '⚔' };
+      ctx.font = '20px serif';
+      ctx.fillText(icons[c.type] || '●', px, py);
+
+      // Label
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.font = '9px "Orbitron"';
+      ctx.fillText(c.type.toUpperCase(), px, py + size + 16);
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>
