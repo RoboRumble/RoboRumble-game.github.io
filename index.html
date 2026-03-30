@@ -1233,10 +1233,10 @@ footer {
   </div>
   <div class="circuit-canvas-wrap reveal">
     <canvas id="circuitCanvas" width="900" height="500"></canvas>
-    <div class="circuit-tooltip" id="circuitTooltip">
-      <div class="circuit-tooltip-title" id="tooltipTitle"></div>
-      <div class="circuit-tooltip-stats" id="tooltipStats"></div>
-    </div>
+  </div>
+  <div class="circuit-tooltip" id="circuitTooltip">
+    <div class="circuit-tooltip-title" id="tooltipTitle"></div>
+    <div class="circuit-tooltip-stats" id="tooltipStats"></div>
   </div>
 </section>
 
@@ -1388,10 +1388,10 @@ document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
     hoveredWire = -1;
   });
 
-  canvas.addEventListener('click', e => {
+  function handleTap(clientX, clientY) {
     const rect = canvas.getBoundingClientRect();
-    const cx = e.clientX - rect.left;
-    const cy = e.clientY - rect.top;
+    const cx = clientX - rect.left;
+    const cy = clientY - rect.top;
 
     clickedComp = -1;
     tooltip.classList.remove('active');
@@ -1399,22 +1399,38 @@ document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
     for (let i = 0; i < components.length; i++) {
       const c = components[i];
       const px = c.x * GRID, py = c.y * GRID;
-      if (Math.abs(cx - px) < 24 && Math.abs(cy - py) < 24) {
+      const hitRadius = Math.max(24, GRID * 0.5);
+      if (Math.abs(cx - px) < hitRadius && Math.abs(cy - py) < hitRadius) {
         clickedComp = i;
         tooltipTitle.textContent = c.label;
         tooltipStats.innerHTML = c.stats.replace(/\n/g, '<br>');
-        const rect = canvas.getBoundingClientRect();
+        const tooltipW = 220, tooltipH = 130;
         let tx = rect.left + px + 30;
-        let ty = rect.top + py - 40;
-        if (tx + 220 > window.innerWidth) tx = rect.left + px - 240;
+        let ty = rect.top + py - tooltipH - 10;
+        if (tx + tooltipW > window.innerWidth - 8) tx = rect.left + px - tooltipW - 10;
         if (tx < 8) tx = 8;
-        if (ty < 8) ty = 8;
-        if (ty + 120 > window.innerHeight) ty = window.innerHeight - 130;
+        if (ty < 8) ty = rect.top + py + 30;
+        if (ty + tooltipH > window.innerHeight - 8) ty = window.innerHeight - tooltipH - 8;
         tooltip.style.left = tx + 'px';
         tooltip.style.top = ty + 'px';
         tooltip.classList.add('active');
         break;
       }
+    }
+  }
+
+  canvas.addEventListener('click', e => handleTap(e.clientX, e.clientY));
+
+  canvas.addEventListener('touchend', e => {
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    handleTap(t.clientX, t.clientY);
+  }, { passive: false });
+
+  document.addEventListener('touchstart', e => {
+    if (!canvas.contains(e.target)) {
+      tooltip.classList.remove('active');
+      clickedComp = -1;
     }
   });
 
