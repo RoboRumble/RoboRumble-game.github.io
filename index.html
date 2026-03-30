@@ -519,9 +519,9 @@ nav {
 }
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 24px;
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
   text-align: center;
 }
@@ -657,7 +657,7 @@ nav {
 .arenas-header .section-desc { margin: 0 auto; }
 .arenas-scroll {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   max-width: 1200px;
   margin: 0 auto;
@@ -979,7 +979,7 @@ footer {
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1024px) {
-  .arenas-scroll { grid-template-columns: repeat(3, 1fr); }
+  .arenas-scroll { grid-template-columns: repeat(3, 1fr); } /* already 3, stays same */
   .bento-grid { grid-template-columns: repeat(2, 1fr); }
   .bento-large { grid-column: span 2; grid-row: span 1; }
 }
@@ -1094,14 +1094,18 @@ footer {
       <div class="stat-label">Learners Surveyed</div>
     </div>
     <div class="stat-item reveal reveal-delay-1">
-      <div class="stat-number">5</div>
+      <div class="stat-number">3</div>
       <div class="stat-label">Lunar Arenas</div>
     </div>
     <div class="stat-item reveal reveal-delay-2">
+      <div class="stat-number">1v1 <span class="stat-accent">/</span> 2v2</div>
+      <div class="stat-label">Match Formats</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-3">
       <div class="stat-number">100<span class="stat-accent">%</span></div>
       <div class="stat-label">Browser-Based</div>
     </div>
-    <div class="stat-item reveal reveal-delay-3">
+    <div class="stat-item reveal reveal-delay-4">
       <div class="stat-number">15–17</div>
       <div class="stat-label">Ages</div>
     </div>
@@ -1151,39 +1155,27 @@ footer {
 <section class="arenas-section" id="arenas">
   <div class="arenas-header">
     <p class="section-label reveal">Battlegrounds</p>
-    <h2 class="section-title reveal">The Five Arenas</h2>
-    <p class="section-desc reveal">Each arena isolates a core electrical engineering constraint. Master one, master them all.</p>
+    <h2 class="section-title reveal">The Three Arenas</h2>
+    <p class="section-desc reveal">Three arenas, increasing in complexity. Each one demands more from your design than the last.</p>
   </div>
   <div class="arenas-scroll">
     <div class="arena-card reveal">
-      <span class="arena-icon">&#127759;</span>
-      <h3 class="arena-name">Regolith Flats</h3>
-      <p class="arena-subtitle">Power Management</p>
-      <p class="arena-desc">Open lunar terrain. No tricks, no shortcuts — just you and your power budget. The proving ground where every milliamp matters.</p>
+      <span class="arena-icon">&#9312;</span>
+      <h3 class="arena-name">Arena I</h3>
+      <p class="arena-subtitle">Entry Level</p>
+      <p class="arena-desc">The proving ground. Learn the basics of robot combat — power, movement, and attack. Get your first win on the lunar surface.</p>
     </div>
     <div class="arena-card reveal reveal-delay-1">
-      <span class="arena-icon">&#128295;</span>
-      <h3 class="arena-name">The Conduit</h3>
-      <p class="arena-subtitle">Wiring Reliability</p>
-      <p class="arena-desc">Narrow sub-surface corridors filled with vibration. Loose connections fail here. Only the cleanest wiring survives.</p>
+      <span class="arena-icon">&#9313;</span>
+      <h3 class="arena-name">Arena II</h3>
+      <p class="arena-subtitle">Intermediate</p>
+      <p class="arena-desc">The stakes rise. Tighter constraints, smarter opponents, and more demanding circuit designs separate the engineers from the guessers.</p>
     </div>
     <div class="arena-card reveal reveal-delay-2">
-      <span class="arena-icon">&#9728;</span>
-      <h3 class="arena-name">Helios Shelf</h3>
-      <p class="arena-subtitle">Sensor Shielding</p>
-      <p class="arena-desc">Peak solar exposure on the crater rim. Radiation floods your sensors — shield them or fight blind.</p>
-    </div>
-    <div class="arena-card reveal reveal-delay-3">
-      <span class="arena-icon">&#127761;</span>
-      <h3 class="arena-name">Shadowside</h3>
-      <p class="arena-subtitle">Battery Efficiency</p>
-      <p class="arena-desc">Permanent shadow. Zero solar. Your battery is all you have — manage draw or shut down before the final round.</p>
-    </div>
-    <div class="arena-card reveal reveal-delay-4">
-      <span class="arena-icon">&#128293;</span>
-      <h3 class="arena-name">The Forge</h3>
-      <p class="arena-subtitle">Thermal Load</p>
-      <p class="arena-desc">Volcanic vent proximity. Extreme heat degrades components in real time. Cooling strategy is your weapon here.</p>
+      <span class="arena-icon">&#9314;</span>
+      <h3 class="arena-name">Arena III</h3>
+      <p class="arena-subtitle">Championship</p>
+      <p class="arena-desc">The final broadcast. Only the most optimised bots survive here. This is where RoboRumble champions are made.</p>
     </div>
   </div>
 </section>
